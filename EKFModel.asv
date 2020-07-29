@@ -1,0 +1,124 @@
+function[Obs1 Pred1 Ekf1] = EKFModel(OrgN,Chlla,DIN,disOx,FisHMass)
+
+persistent H Q R U
+persistent x P
+persistent firstRun
+kn1=0;
+kn=0;
+KN=0;
+kf=0;
+fpn=0;
+vs=0;
+n=0;
+h=0;
+fon=0;
+anp=0;
+r=0;
+dp=0;
+a=0;
+b=0;
+m=1;
+gT=0;
+% Zk = zeros(5,1);
+Zk = disOx;
+% Compute m equation m=umaxg(I) ---%
+% function m = compute()
+
+if isempty(firstRun)
+  H = [ 1 0 0 0 0; 0 1 0 0 0; 0 0 0 1 0; 0 0 0 1 0];
+  
+  Q = [ 0.0001 0      0    0;
+        0      0.0001 0    0;
+        0      0      0.1  0;
+        0      0      0    0.001];
+     
+  R = [  6  0;
+         0  6 ];
+
+%   x = [0 0 0]';  
+%   P = 10*eye(3);
+
+Xa = [ 0 0 0 0 0; 0 0 0 0 0; 0 0 0 0 0; 0 0 0 0 0; 0 0 0 0 0];
+Pa = eye(5);
+
+  
+  firstRun = 1;  
+end
+
+
+% Zk(1,1)= OrgN;
+% Zk(1,2)= Chlla;
+% Zk(1,3)= DIN;
+% Zk(1,4)= disOX;
+% Zk(1,5)= FishMass;
+
+
+
+
+%Kalman Gain Matrix
+
+M = Mjacob(kn1,kn,KN,kf,fpn,vs,n,fon,anp,r,dp,a,b);
+Xf = (M*Xa)+U;
+Pf = M*Pa*M'+Q;
+
+K = Pa*H'*inv(H*Pp*H' + R); 
+
+[x , p] = Ofor(Xf, K, Zk, Pf,H);
+
+
+
+
+
+
+%------JaccobianMatrixEquation------%
+function M = Mjacob(kn1,kn,KN,kf,fpn,vs,n,fon,anp,r,dp,a,b)
+A = zeros(5,5);
+
+% N1 Derv ---- %
+A(1,1) = -(kn1+ikf+(fpn(vs/h)));
+A(1,2) = (fon*anp(r+dp))/1000;
+A(1,3) = 0;
+A(1,4) = 0;
+A(1,5) = 0;
+
+% P Derv ---- %
+A(2,1) = 0;
+A(2,2) = m*N/(KN+N);
+A(2,3) = (m*kn*P)/(KN+N)^2;
+A(2,4) = (L*N/(N+KN)- h);
+A(2,5) = 0;
+
+% N Derv ---- %
+A(3,1) = 0;
+A(3,2) = b+ a*gT*(N/(N+KN));
+A(3,3) = 0;
+A(3,4) = 0;
+A(3,5) = 0;
+
+% C Derv ---- %
+A(4,1) = 0;
+A(4,2) = 0;
+A(4,3) = 0;
+A(4,4) = kn;
+A(4,5) = 0;
+
+% Wf Derv ---- %
+A(5,1) = 0;
+A(5,2) = 0;
+A(5,3) = 0;
+A(5,4) = 0;
+A(5,5) = 0;
+
+%----------Innovation --------%
+function Ofor [xhat, Prop] = update(Xf, K, Zk, Pf,H)
+
+Xhat = Xf + K*(Zk - (H*Xf));
+Prop = (I - K*H)*Pf;
+
+
+
+
+
+
+
+

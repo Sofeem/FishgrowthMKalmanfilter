@@ -1,0 +1,17 @@
+function [N1 P N C Wf] = GetScalerVectorParameters()
+
+persistent n1 p n c wf
+persistent k firstrun
+
+if isempty(firstRun)
+    load datafile;
+    k = 1;
+    
+    firstRun = 1;
+end
+
+N1 = n1(k);
+P =  p(k);
+N =  
+C =
+Wf = 
